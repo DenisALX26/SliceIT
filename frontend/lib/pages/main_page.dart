@@ -2,47 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:frontend/colors.dart';
 import 'package:frontend/components/pizza_card.dart';
 import 'package:frontend/config/app_strings.dart';
+import 'package:frontend/repository/pizza_repo.dart';
+import 'package:frontend/model/pizza.dart';
 
 class MainPage extends StatefulWidget {
-  MainPage({super.key}); // needs to be const after removing test lists
-
-  // list of pizza names for testing
-  final List<String> pizzaNames = [
-    "Pizza 1",
-    "Pizza 2",
-    "Pizza 4",
-    "Pizza 3",
-    "Pizza 5",
-    "Pizza 6",
-    "Pizza 7",
-    "Pizza 8",
-    "Pizza 9",
-    "Pizza 10",
-  ];
-  final List<double> pizzaPrices = [
-    10.00,
-    12.00,
-    14.00,
-    16.00,
-    18.00,
-    20.00,
-    22.00,
-    24.00,
-    26.00,
-    28.00,
-  ];
-  final List<String> pizzaImages = [
-    'temp/pizza1.png',
-    'temp/pizza2.png',
-    'temp/pizza4.png',
-    'temp/pizza2.png',
-    'temp/pizza2.png',
-    'temp/pizza2.png',
-    'temp/pizza2.png',
-    'temp/pizza2.png',
-    'temp/pizza2.png',
-    'temp/pizza2.png',
-  ];
+  final PizzaRepo pizzaRepo;
+  const MainPage({
+    super.key,
+    required this.pizzaRepo,
+  });
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -50,6 +18,38 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int cartItemCount = 0;
+  bool _loading = true;
+  List<Pizza> _pizzas = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetch();
+  }
+
+  Future<void> _fetch() async {
+    setState(() {
+      _loading = true;
+    });
+    try {
+      final data = await widget.pizzaRepo.getAllPizzas();
+      setState(() {
+        _pizzas = data;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,22 +99,26 @@ class _MainPageState extends State<MainPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.only(left: 32, right: 32, top: 32, bottom: 0),
-        child: ListView.separated(
-          itemBuilder: (context, index) {
-            return PizzaCard(
-              imagePath: widget.pizzaImages[index],
-              title: widget.pizzaNames[index],
-              price: widget.pizzaPrices[index],
-              onAddToCart: () {
-                setState(() {
-                  cartItemCount++;
-                });
-              },
-            );
-          },
-          itemCount: widget.pizzaNames.length,
-          separatorBuilder: (context, index) => const SizedBox(height: 16),
-        ),
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : ListView.separated(
+                itemCount: _pizzas.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 16),
+                itemBuilder: (context, index) {
+                  final pizza = _pizzas[index];
+                  return PizzaCard(
+                    imagePath: pizza.imageUrl,
+                    title: pizza.name,
+                    price: pizza.price,
+                    onAddToCart: () {
+                      setState(() {
+                        cartItemCount++;
+                      });
+                    },
+                  );
+                },
+              ),
       ),
       bottomNavigationBar: Container(
         margin: const EdgeInsets.all(16),

@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/controllers/register_controller.dart';
+import 'package:frontend/repository/auth_repo.dart';
 import "../colors.dart";
 import '../components/round_btn.dart';
+import '../config/app_strings.dart';
+import '../config/app_router.dart';
+import 'package:go_router/go_router.dart';
 
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+  final AuthRepo authRepo;
+
+  const SignUpScreen({
+    super.key,
+    required this.authRepo,
+  });
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
@@ -13,10 +23,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailField = TextEditingController();
   final _passwordField = TextEditingController();
   final _fullNameField = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
   bool _isObscured = true;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailField.dispose();
+    _passwordField.dispose();
+    _fullNameField.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final registerController = RegisterController(
+      authRepo: widget.authRepo,
+      context: context,
+    );
+
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(
@@ -34,7 +60,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              "Sign Up",
+                              AppStrings.signup,
                               style: TextStyle(
                                 fontSize: 64,
                                 fontWeight: FontWeight.bold,
@@ -44,6 +70,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                           const SizedBox(height: 32),
                           Form(
+                            key: _formKey,
                             child: Column(
                               children: [
                                 TextFormField(
@@ -52,11 +79,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: AppColors.inputField,
-                                    hintText: "Full Name",
+                                    hintText: AppStrings.fullName,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                   ),
+                                  validator: (value) {
+                                    final x = value?.trim() ?? '';
+                                    if (x.isEmpty) {
+                                      return AppStrings.fullNameRequired;
+                                    }
+                                    return null;
+                                  },
                                 ),
                                 const SizedBox(height: 16),
                                 TextFormField(
@@ -64,12 +98,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: AppColors.inputField,
-                                    hintText: "Email",
+                                    hintText: AppStrings.email,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                   ),
                                   keyboardType: TextInputType.emailAddress,
+                                  validator: (value) {
+                                    final x = value?.trim() ?? '';
+                                    if (x.isEmpty) {
+                                      return AppStrings.emailRequired;
+                                    }
+                                    if (!x.contains('@')) {
+                                      return AppStrings.invalidEmail;
+                                    }
+                                    return null;
+                                  },
                                 ),
                                 const SizedBox(height: 16),
                                 TextFormField(
@@ -78,7 +122,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: AppColors.inputField,
-                                    hintText: "Password",
+                                    hintText: AppStrings.password,
                                     suffixIcon: IconButton(
                                       icon: Icon(
                                         _isObscured
@@ -95,19 +139,53 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                   ),
+                                  validator: (value) {
+                                    final x = value?.trim() ?? '';
+                                    if (x.isEmpty) {
+                                      return AppStrings.passwordRequired;
+                                    }
+                                    if (x.length < 8) {
+                                      return AppStrings.passwordTooShort;
+                                    }
+                                    return null;
+                                  },
                                 ),
                                 const SizedBox(height: 64),
                                 FractionallySizedBox(
                                   widthFactor: 0.8,
-                                  child: SizedBox(
-                                    child: RoundBtn(
-                                      text: "Sign Up",
-                                      bgColor: AppColors.myRed,
-                                      onPressed: () {
-                                        // Handle sign up logic here
-                                      },
-                                      textColor: Colors.white,
-                                    ),
+                                  child: RoundBtn(
+                                    text: _isLoading
+                                        ? AppStrings.signingUp
+                                        : AppStrings.signup,
+                                    bgColor: AppColors.myRed,
+                                    onPressed: () {
+                                      if (_isLoading) return;
+                                      FocusScope.of(context).unfocus();
+                                  
+                                      final isValid =
+                                          _formKey.currentState?.validate() ??
+                                          false;
+                                      if (!isValid) return;
+                                  
+                                      setState(() {
+                                        _isLoading = true;
+                                      });
+                                  
+                                      registerController
+                                          .submitRegister(
+                                            _fullNameField.text.trim(),
+                                            _emailField.text.trim(),
+                                            _passwordField.text,
+                                          )
+                                          .whenComplete(() {
+                                            if (mounted) {
+                                              setState(() {
+                                                _isLoading = false;
+                                              });
+                                            }
+                                          });
+                                    },
+                                    textColor: Colors.white,
                                   ),
                                 ),
                               ],
@@ -118,15 +196,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text("Already have an account?"),
+                          Text(AppStrings.haveAccount),
                           TextButton(
                             onPressed: () {
-                              Navigator.of(
-                                context,
-                              ).pushReplacementNamed('/login');
+                              context.go(AppRoutes.login);
                             },
                             child: Text(
-                              "Log In",
+                              AppStrings.login,
                               style: TextStyle(
                                 color: AppColors.myRed,
                                 fontWeight: FontWeight.bold,

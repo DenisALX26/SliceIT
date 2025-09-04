@@ -16,6 +16,8 @@ class PizzaCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isNetworkImage = imagePath.startsWith('http');
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.inputField,
@@ -29,7 +31,13 @@ class PizzaCard extends StatelessWidget {
               topLeft: Radius.circular(16),
               bottomLeft: Radius.circular(16),
             ),
-            child: Image.asset(imagePath),
+            child: isNetworkImage
+                ? Image.network(
+                    imagePath,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.broken_image, size: 40),
+                  )
+                : Image.asset(imagePath),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,6 +45,8 @@ class PizzaCard extends StatelessWidget {
               Text(
                 title,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                softWrap: true,
+                textAlign: TextAlign.center,
               ),
               Text(
                 '\$$price',
@@ -44,9 +54,19 @@ class PizzaCard extends StatelessWidget {
               ),
             ],
           ),
-          IconButton(onPressed: () {
-            onAddToCart();
-          }, icon: const Icon(Icons.add)),
+          IconButton(
+            color: Colors.white,
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.myRed,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () {
+              onAddToCart();
+            },
+            icon: const Icon(Icons.add),
+          ),
         ],
       ),
     );

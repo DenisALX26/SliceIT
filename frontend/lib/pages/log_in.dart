@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/config/app_router.dart';
+import 'package:frontend/controllers/login_controller.dart';
+import 'package:go_router/go_router.dart';
 import '../colors.dart';
 import '../components/round_btn.dart';
+import '../config/app_strings.dart';
+import 'package:frontend/auth/auth_state.dart';
+import 'package:frontend/repository/auth_repo.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, required this.authRepo, required this.auth});
+
+  final AuthRepo authRepo;
+  final AuthState auth;
 
   @override
   State<StatefulWidget> createState() => _LoginScreenState();
@@ -11,8 +20,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _emailField = TextEditingController(),
-      _passwordField = TextEditingController();
-  bool _isObscured = true;
+      _passwordField = TextEditingController(),
+      _formKey = GlobalKey<FormState>();
+  bool _isObscured = true, _isLoading = false;
 
   @override
   void dispose() {
@@ -23,6 +33,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final loginController = LoginController(
+      authRepo: widget.authRepo,
+      auth: widget.auth,
+      context: context,
+    );
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(
@@ -40,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              "Log In",
+                              AppStrings.login,
                               style: TextStyle(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 64,
@@ -50,6 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 32),
                           Form(
+                            key: _formKey,
                             child: Column(
                               children: [
                                 TextFormField(
@@ -57,12 +73,22 @@ class _LoginScreenState extends State<LoginScreen> {
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: AppColors.inputField,
-                                    hintText: "Email",
+                                    hintText: AppStrings.email,
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                   ),
                                   keyboardType: TextInputType.emailAddress,
+                                  validator: (value) {
+                                    final x = value?.trim() ?? '';
+                                    if (x.isEmpty) {
+                                      return AppStrings.emailRequired;
+                                    }
+                                    if (!x.contains('@')) {
+                                      return AppStrings.invalidEmail;
+                                    }
+                                    return null;
+                                  },
                                 ),
                                 const SizedBox(height: 16),
                                 TextFormField(
@@ -71,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   decoration: InputDecoration(
                                     filled: true,
                                     fillColor: AppColors.inputField,
-                                    hintText: "Password",
+                                    hintText: AppStrings.password,
                                     suffixIcon: IconButton(
                                       icon: Icon(
                                         _isObscured
@@ -88,6 +114,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                       borderRadius: BorderRadius.circular(16),
                                     ),
                                   ),
+                                  validator: (value) {
+                                    final x = value?.trim() ?? '';
+                                    if (x.isEmpty) {
+                                      return AppStrings.passwordRequired;
+                                    }
+                                    if (x.length < 8) {
+                                      return AppStrings.passwordTooShort;
+                                    }
+                                    return null;
+                                  },
                                 ),
                               ],
                             ),
@@ -97,42 +133,60 @@ class _LoginScreenState extends State<LoginScreen> {
                             widthFactor: 0.8,
                             child: SizedBox(
                               child: RoundBtn(
-                                text: "Log In",
+                                text: _isLoading
+                                    ? AppStrings.loggingIn
+                                    : AppStrings.login,
                                 bgColor: AppColors.myRed,
                                 onPressed: () {
-                                  // Handle login logic here
+                                  if (_isLoading) return;
+                                  FocusScope.of(context).unfocus();
+
+                                  final valid =
+                                      _formKey.currentState?.validate() ??
+                                      false;
+                                  if (!valid) return;
+
+                                  setState(() => _isLoading = true);
+
+                                  loginController
+                                      .submitLogin(
+                                        _emailField.text.trim(),
+                                        _passwordField.text,
+                                      )
+                                      .whenComplete(() {
+                                        if (mounted) {
+                                          setState(() => _isLoading = false);
+                                        }
+                                      });
                                 },
                                 textColor: Colors.white,
                               ),
                             ),
                           ),
-                          // const SizedBox(height: 16,),
                           TextButton(
                             onPressed: () {
                               // Handle forgot password logic here
                             },
                             child: Text(
-                              "Forgot Password?",
+                              AppStrings.forgotPassword,
                               style: TextStyle(color: Colors.black),
                             ),
                           ),
-
-                          // Expanded(child: Container(color: Colors.blue)),
                         ],
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Don't have an account?",
+                            AppStrings.noAccount,
                             style: TextStyle(color: Colors.black),
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.popAndPushNamed(context, "/signup");
+                              context.go(AppRoutes.signup);
                             },
                             child: Text(
-                              "Sign Up",
+                              AppStrings.signup,
                               style: TextStyle(
                                 color: AppColors.myRed,
                                 fontWeight: FontWeight.bold,
