@@ -1,0 +1,37 @@
+class AppStrings {
+  static const String login = "Login";
+  static const String signup = "Sign Up";
+  static const String forgotPassword = "Forgot Password?"; 
+  static const String ourProducts = "Our Products";
+  static const String home = "Home";
+  static const String profile = "Profile";
+  static const String noAccount = "Don't have an account?";
+  static const String email = "Email";
+  static const String password = "Password";
+  static const String fullName = "Full Name";
+  static const String haveAccount = "Already have an account?";
+  static const String accessToken = "accessToken";
+  static const String fontFamily = "Roboto";
+  static const String contentType = "Content-Type";
+  static const String applicationJson = "application/json";
+  static const String loginError = "Error logging in. Please try again.";
+  static const String emailRequired = "Email is required.";
+  static const String invalidEmail = "Invalid email address.";
+  static const String passwordRequired = "Password is required.";
+  static const String passwordTooShort = "Password must be at least 8 characters long.";
+  static const String loggingIn = "Logging in...";
+  static const String registrationSuccessful = "Registration successful! Please log in.";
+  static const String registrationFailed = "Registration failed. Please try again.";
+  static const String registrationError = "An error occurred during registration. Please try again.";
+  static const String invalidTokenReceived = "Invalid token received.";
+  static const String invalidEmailOrPassword = "Invalid email or password.";
+  static const String emailTextForData = "email";
+  static const String passwordTextForData = "password";
+  static const String fullNameTextForData = "fullName";
+  static const String loginFailed = "Login failed.";
+  static const String emailAlreadyInUse = "Email is already in use.";
+  static const String signingUp = "Signing up...";
+  static const String fullNameRequired = "Full name is required.";
+  static const String pizzaNotFound = "Pizza not found.";
+  static const String requestFailed = "Request failed. Please try again.";
+}
