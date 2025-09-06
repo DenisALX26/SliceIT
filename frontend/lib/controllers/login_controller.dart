@@ -17,7 +17,7 @@ class LoginController {
       final token = await authRepo.login(email: email, password: password);
       await auth.setLoggedIn(token);
       if (context.mounted) {
-        context.go(AppRoutes.main);
+        context.go(AppRoutes.root);
       }
     } on AuthException catch (e) {
       if (context.mounted) {

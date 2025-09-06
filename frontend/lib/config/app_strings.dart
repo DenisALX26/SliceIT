@@ -34,4 +34,7 @@ class AppStrings {
   static const String fullNameRequired = "Full name is required.";
   static const String pizzaNotFound = "Pizza not found.";
   static const String requestFailed = "Request failed. Please try again.";
+  static const String account = "Account";
+  static const String myOrders = "My Orders";
+  static const String logout = "Logout";
 }
