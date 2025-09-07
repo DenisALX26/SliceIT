@@ -37,4 +37,6 @@ class AppStrings {
   static const String account = "Account";
   static const String myOrders = "My Orders";
   static const String logout = "Logout";
+  static const String logoutFailed = "Logout failed. ";
+  static const String loggingOut = "Logging out...";
 }

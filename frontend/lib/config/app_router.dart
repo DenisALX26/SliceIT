@@ -54,7 +54,7 @@ GoRouter buildRouter({required AuthState auth, required AuthRepo authRepo}) {
       ),
       GoRoute(
         path: AppRoutes.root,
-        builder: (context, state) => RootPage(pizzaRepo: pizzaRepo),
+        builder: (context, state) => RootPage(pizzaRepo: pizzaRepo, authRepo: authRepo, auth: auth),
       ),
     ],
   );

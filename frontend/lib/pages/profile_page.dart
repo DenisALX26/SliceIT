@@ -1,15 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/auth/auth_state.dart';
 import 'package:frontend/colors.dart';
 import 'package:frontend/config/app_strings.dart';
+import 'package:frontend/repository/auth_repo.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  final AuthRepo authRepo;
+  final AuthState auth;
+
+  const ProfilePage({
+    super.key,
+    required this.authRepo,
+    required this.auth,
+  });
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  bool _loading = false;
+
+  Future<void> _handleLogout() async {
+    if(_loading) return;
+    setState(() {
+      _loading = true;
+    });
+    try {
+      await widget.auth.setLoggedOut();
+    } catch (e) {
+      if(!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${AppStrings.logoutFailed} $e')),
+      );
+    }finally {
+      if(mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -89,11 +121,10 @@ class _ProfilePageState extends State<ProfilePage> {
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: _loading ? null : _handleLogout,
                   child: Row(
                     children: [
-                      Text(
-                        AppStrings.logout,
+                      Text(_loading ? AppStrings.loggingOut : AppStrings.logout,
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.normal,

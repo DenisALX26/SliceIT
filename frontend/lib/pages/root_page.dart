@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/auth/auth_state.dart';
 import 'package:frontend/components/custom_nav_bar.dart';
+import 'package:frontend/repository/auth_repo.dart';
 import 'package:frontend/repository/pizza_repo.dart';
 import 'main_page.dart';
 import 'profile_page.dart';
@@ -8,8 +10,10 @@ import 'package:frontend/colors.dart';
 
 class RootPage extends StatefulWidget {
   final PizzaRepo pizzaRepo;
+  final AuthRepo authRepo;
+  final AuthState auth;
   // final int cartItemCount;
-  const RootPage({super.key, required this.pizzaRepo});
+  const RootPage({super.key, required this.pizzaRepo, required this.authRepo, required this.auth});
 
   @override
   State<RootPage> createState() => _RootPageState();
@@ -39,7 +43,7 @@ class _RootPageState extends State<RootPage> {
     super.initState();
     _pages = [
       MainPage(pizzaRepo: widget.pizzaRepo, onAddToCart: _incrementCart),
-      const ProfilePage(),
+      ProfilePage(authRepo: widget.authRepo, auth: widget.auth),
     ];
   }
 
