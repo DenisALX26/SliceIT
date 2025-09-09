@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/config/app_router.dart';
 import 'package:frontend/controllers/login_controller.dart';
+import 'package:frontend/repository/user_repositoy.dart';
 import 'package:go_router/go_router.dart';
 import '../colors.dart';
 import '../components/round_btn.dart';
@@ -9,10 +10,11 @@ import 'package:frontend/auth/auth_state.dart';
 import 'package:frontend/repository/auth_repo.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key, required this.authRepo, required this.auth});
+  const LoginScreen({super.key, required this.authRepo, required this.auth, required this.userRepo});
 
   final AuthRepo authRepo;
   final AuthState auth;
+  final UserRepository userRepo;
 
   @override
   State<StatefulWidget> createState() => _LoginScreenState();
@@ -37,6 +39,7 @@ class _LoginScreenState extends State<LoginScreen> {
       authRepo: widget.authRepo,
       auth: widget.auth,
       context: context,
+      userRepo: widget.userRepo,
     );
     return Scaffold(
       body: SafeArea(
@@ -147,6 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   if (!valid) return;
 
                                   setState(() => _isLoading = true);
+
 
                                   loginController
                                       .submitLogin(

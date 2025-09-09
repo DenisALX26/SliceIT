@@ -3,6 +3,7 @@ import 'package:frontend/config/app_config.dart';
 import 'package:frontend/config/app_strings.dart';
 import 'package:frontend/pages/root_page.dart';
 import 'package:frontend/repository/pizza_repo.dart';
+import 'package:frontend/repository/user_repositoy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/pages/log_in.dart';
 import 'package:frontend/pages/sign_up.dart';
@@ -24,7 +25,12 @@ class AppRoutes {
   static const root = '/root';
 }
 
-GoRouter buildRouter({required AuthState auth, required AuthRepo authRepo}) {
+GoRouter buildRouter({
+  required AuthState auth,
+  required AuthRepo authRepo,
+  required UserRepository userRepo,
+  required PizzaRepo pizzaRepo,
+}) {
   return GoRouter(
     initialLocation: AppRoutes.login,
     refreshListenable: auth,
@@ -46,7 +52,7 @@ GoRouter buildRouter({required AuthState auth, required AuthRepo authRepo}) {
       GoRoute(
         path: AppRoutes.login,
         builder: (context, state) =>
-            LoginScreen(authRepo: authRepo, auth: auth),
+            LoginScreen(authRepo: authRepo, auth: auth, userRepo: userRepo),
       ),
       GoRoute(
         path: AppRoutes.signup,
@@ -54,7 +60,8 @@ GoRouter buildRouter({required AuthState auth, required AuthRepo authRepo}) {
       ),
       GoRoute(
         path: AppRoutes.root,
-        builder: (context, state) => RootPage(pizzaRepo: pizzaRepo, authRepo: authRepo, auth: auth),
+        builder: (context, state) =>
+            RootPage(pizzaRepo: pizzaRepo, authRepo: authRepo, auth: auth),
       ),
     ],
   );

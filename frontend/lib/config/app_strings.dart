@@ -39,4 +39,8 @@ class AppStrings {
   static const String logout = "Logout";
   static const String logoutFailed = "Logout failed. ";
   static const String loggingOut = "Logging out...";
+  static const String authorization = "Authorization";
+  static const String bearer = "Bearer";
+  static const String userFullNameForProfilePage = "User Full Name";
+  static const String userEmailForProfilePage = "user@email.com";
 }

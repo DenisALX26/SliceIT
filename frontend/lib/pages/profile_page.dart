@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/auth/auth_state.dart';
-import 'package:frontend/colors.dart';
 import 'package:frontend/config/app_strings.dart';
 import 'package:frontend/repository/auth_repo.dart';
+import 'package:frontend/colors.dart';
+import 'package:frontend/model/user.dart';
 
 class ProfilePage extends StatefulWidget {
   final AuthRepo authRepo;
@@ -44,6 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final User? currentUser = widget.auth.getUser();
     return Column(
       children: [
         const SizedBox(height: 24),
@@ -70,14 +72,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "John Doe",
+                    currentUser?.fullName ?? AppStrings.userFullNameForProfilePage,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.normal,
                     ),
                   ),
                   Text(
-                    "john.doe@example.com",
+                    currentUser?.email ?? AppStrings.userEmailForProfilePage,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.normal,

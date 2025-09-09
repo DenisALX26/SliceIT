@@ -4,6 +4,8 @@ import 'package:frontend/auth/dio_client.dart';
 import 'package:frontend/auth/token_store.dart';
 import 'package:frontend/config/app_config.dart';
 import 'package:frontend/config/app_router.dart';
+import 'package:frontend/repository/pizza_repo.dart';
+import 'package:frontend/repository/user_repositoy.dart';
 import 'package:go_router/go_router.dart';
 import 'colors.dart';
 import 'package:frontend/config/app_strings.dart';
@@ -12,13 +14,28 @@ import 'package:frontend/repository/auth_repo.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final tokens = const TokenStore(), auth = AuthState(tokens), dio = buildDio(AppConfig.baseUrl), authRepo = AuthRepo(dio);
+  final tokens = const TokenStore(),
+      auth = AuthState(tokens),
+      dio = buildDio(AppConfig.baseUrl, tokens),
+      authRepo = AuthRepo(dio),
+      userRepo = UserRepository(dio),
+      pizzaRepo = PizzaRepo(dio);
 
   await auth.checkLoginStatus();
 
-  final router = buildRouter(auth: auth, authRepo: authRepo);
+  if (auth.getIsLoggedIn()) {
+    try {
+      final loggedInUser = await userRepo.getMe();
+      auth.setUser(loggedInUser);
+    } catch (_) {}
+  }
 
-  // tokens.deleteAccess();
+  final router = buildRouter(
+    auth: auth,
+    authRepo: authRepo,
+    userRepo: userRepo,
+    pizzaRepo: pizzaRepo,
+  );
 
   runApp(SliceItApp(router: router));
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/auth/auth_state.dart';
 import 'package:frontend/config/app_router.dart';
 import 'package:frontend/repository/auth_repo.dart';
+import 'package:frontend/repository/user_repositoy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:frontend/config/app_strings.dart';
 
@@ -9,13 +10,18 @@ class LoginController {
   final AuthRepo authRepo;
   final AuthState auth;
   final BuildContext context;
+  final UserRepository userRepo;
 
-  LoginController({required this.authRepo, required this.auth, required this.context});
+  LoginController({required this.userRepo, required this.authRepo, required this.auth, required this.context});
 
   Future<void> submitLogin(String email, String password) async {
     try {
       final token = await authRepo.login(email: email, password: password);
       await auth.setLoggedIn(token);
+
+      final me = await userRepo.getMe();
+      auth.setUser(me);
+
       if (context.mounted) {
         context.go(AppRoutes.root);
       }
