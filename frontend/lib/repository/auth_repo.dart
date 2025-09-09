@@ -53,6 +53,10 @@ class AuthRepo {
   }
 }
 
+Future<void> logout() async {
+  
+}
+
 String? _safeErrorMessage(dynamic data) {
   if (data is Map && data['error'] is String && (data['error'] as String).isNotEmpty) {
     return data['error'] as String;

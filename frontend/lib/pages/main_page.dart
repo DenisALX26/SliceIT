@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/colors.dart';
 import 'package:frontend/components/pizza_card.dart';
-import 'package:frontend/config/app_strings.dart';
 import 'package:frontend/repository/pizza_repo.dart';
 import 'package:frontend/model/pizza.dart';
 
 class MainPage extends StatefulWidget {
   final PizzaRepo pizzaRepo;
+  final VoidCallback onAddToCart;
+
   const MainPage({
     super.key,
     required this.pizzaRepo,
+    required this.onAddToCart,
   });
 
   @override
@@ -17,7 +18,6 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  int cartItemCount = 0;
   bool _loading = true;
   List<Pizza> _pizzas = [];
 
@@ -53,51 +53,7 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          AppStrings.ourProducts,
-          style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.myBeige,
-        actions: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.shopping_cart_outlined),
-                onPressed: () {},
-              ),
-              if (cartItemCount > 0)
-                Positioned(
-                  bottom: 1,
-                  left: -1,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.myRed,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6.0,
-                        vertical: 1.0,
-                      ),
-                      child: Text(
-                        cartItemCount > 99 ? '99+' : '$cartItemCount',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-      body: Padding(
+    return  Padding(
         padding: const EdgeInsets.only(left: 32, right: 32, top: 32, bottom: 0),
         child: _loading
             ? const Center(child: CircularProgressIndicator())
@@ -113,37 +69,12 @@ class _MainPageState extends State<MainPage> {
                     price: pizza.price,
                     onAddToCart: () {
                       setState(() {
-                        cartItemCount++;
+                        widget.onAddToCart;
                       });
                     },
                   );
                 },
               ),
-      ),
-      bottomNavigationBar: Container(
-        margin: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.myBeige,
-          border: Border(top: BorderSide(color: Colors.black, width: 2.0)),
-        ),
-        child: BottomNavigationBar(
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          selectedItemColor: AppColors.myRed,
-          unselectedItemColor: Colors.black,
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: AppStrings.home,
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: AppStrings.profile,
-            ),
-          ],
-        ),
-      ),
-    );
+      );
   }
 }

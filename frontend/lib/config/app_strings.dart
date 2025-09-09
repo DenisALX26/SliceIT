@@ -34,4 +34,13 @@ class AppStrings {
   static const String fullNameRequired = "Full name is required.";
   static const String pizzaNotFound = "Pizza not found.";
   static const String requestFailed = "Request failed. Please try again.";
+  static const String account = "Account";
+  static const String myOrders = "My Orders";
+  static const String logout = "Logout";
+  static const String logoutFailed = "Logout failed. ";
+  static const String loggingOut = "Logging out...";
+  static const String authorization = "Authorization";
+  static const String bearer = "Bearer";
+  static const String userFullNameForProfilePage = "User Full Name";
+  static const String userEmailForProfilePage = "user@email.com";
 }

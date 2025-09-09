@@ -19,12 +19,13 @@ class PizzaCard extends StatelessWidget {
     final isNetworkImage = imagePath.startsWith('http');
 
     return Container(
+      padding: const EdgeInsets.only(right: 16),
       decoration: BoxDecoration(
         color: AppColors.inputField,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           ClipRRect(
             borderRadius: BorderRadius.only(
@@ -39,20 +40,23 @@ class PizzaCard extends StatelessWidget {
                   )
                 : Image.asset(imagePath),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                softWrap: true,
-                textAlign: TextAlign.center,
-              ),
-              Text(
-                '\$$price',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-              ),
-            ],
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  softWrap: true,
+                  textAlign: TextAlign.start,
+                ),
+                Text(
+                  '\$$price',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+                ),
+              ],
+            ),
           ),
           IconButton(
             color: Colors.white,
