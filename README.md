@@ -1,4 +1,4 @@
-# SliceIt 🍕
+# SliceIT 🍕
 
 SliceIt is a mobile application for ordering pizza, designed to provide a smooth and intuitive experience for customers. 
 The app allows users to create accounts, log in securely, browse their profile, and view order history. 
