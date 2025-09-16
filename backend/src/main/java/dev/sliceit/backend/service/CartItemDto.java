@@ -6,16 +6,17 @@ import java.util.UUID;
 public class CartItemDto {
     private final UUID cartItemId;
     private final UUID pizzaId;
-    private final String pizzaName;
+    private final String pizzaName, imageUrl;
     private final int quantity;
     private final BigDecimal unitPrice;
 
-    public CartItemDto(UUID cartItemId, UUID pizzaId, String pizzaName, int quantity, BigDecimal unitPrice) {
+    public CartItemDto(UUID cartItemId, UUID pizzaId, String pizzaName, int quantity, BigDecimal unitPrice, String imageUrl) {
         this.cartItemId = cartItemId;
         this.pizzaId = pizzaId;
         this.pizzaName = pizzaName;
         this.quantity = quantity;
         this.unitPrice = unitPrice;
+        this.imageUrl = imageUrl;
     }
 
     public UUID getCartItemId() {
@@ -36,5 +37,9 @@ public class CartItemDto {
 
     public BigDecimal getUnitPrice() {
         return unitPrice;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 }

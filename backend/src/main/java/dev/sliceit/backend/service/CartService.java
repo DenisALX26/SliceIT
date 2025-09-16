@@ -120,7 +120,7 @@ public class CartService {
         dto.setCartId(cart.getId());
         dto.setUserId(cart.getUser().getId());
         dto.setItems(cart.getItems().stream().map(item -> new CartItemDto(item.getId(), item.getPizza().getId(),
-                item.getPizza().getName(), item.getQuantity(), item.getUnitPrice())).toList());
+                item.getPizza().getName(), item.getQuantity(), item.getUnitPrice(), item.getPizza().getImageUrl())).toList());
         dto.setTotal(calculateTotalPrice(cart));
         return dto;
     }
