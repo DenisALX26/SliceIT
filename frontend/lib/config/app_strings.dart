@@ -43,4 +43,11 @@ class AppStrings {
   static const String bearer = "Bearer";
   static const String userFullNameForProfilePage = "User Full Name";
   static const String userEmailForProfilePage = "user@email.com";
+  static const String myCart = "My Cart";
+  static const String checkout = "Checkout";
+  static const String pizzaIdForData = "pizzaId";
+  static const String quantityForData = "quantity";
+  static const String addedToCart = "Added to cart";
+  static const String emptyCart = "Your cart is empty";
+  static const String total = "Total:";
 }

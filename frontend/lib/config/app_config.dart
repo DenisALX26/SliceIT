@@ -5,4 +5,6 @@ class AppConfig {
   static const apiRegister = "$apiAuth/register";
   static const apiPizzas = "$baseUrl/api/pizza";
   static const apiMe = "$baseUrl/api/me";
+  static const cart = "$baseUrl/api/cart";
+  static const items = "$baseUrl/api/cart/items";
 }

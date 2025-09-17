@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/components/pizza_card.dart';
+import 'package:frontend/controllers/cart_controller.dart';
 import 'package:frontend/repository/pizza_repo.dart';
 import 'package:frontend/model/pizza.dart';
 
 class MainPage extends StatefulWidget {
   final PizzaRepo pizzaRepo;
-  final VoidCallback onAddToCart;
+  final CartController cartController;
 
   const MainPage({
     super.key,
     required this.pizzaRepo,
-    required this.onAddToCart,
+    required this.cartController,
   });
 
   @override
@@ -38,9 +39,9 @@ class _MainPageState extends State<MainPage> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
       }
     } finally {
       if (mounted) {
@@ -53,28 +54,34 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    return  Padding(
-        padding: const EdgeInsets.only(left: 32, right: 32, top: 32, bottom: 0),
-        child: _loading
-            ? const Center(child: CircularProgressIndicator())
-            : ListView.separated(
-                itemCount: _pizzas.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  final pizza = _pizzas[index];
-                  return PizzaCard(
-                    imagePath: pizza.imageUrl,
-                    title: pizza.name,
-                    price: pizza.price,
-                    onAddToCart: () {
-                      setState(() {
-                        widget.onAddToCart;
-                      });
-                    },
-                  );
-                },
-              ),
-      );
+    return Padding(
+      padding: const EdgeInsets.only(left: 32, right: 32, top: 32, bottom: 0),
+      child: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView.separated(
+              itemCount: _pizzas.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 16),
+              itemBuilder: (context, index) {
+                final pizza = _pizzas[index];
+                return PizzaCard(
+                  imagePath: pizza.imageUrl,
+                  title: pizza.name,
+                  price: pizza.price,
+                  onAddToCart: () async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    try {
+                      await widget.cartController.add(pizza.id);
+                    } catch (e) {
+                      if (mounted) {
+                        messenger.showSnackBar(
+                          SnackBar(content: Text(e.toString())),
+                        );
+                      }
+                    }
+                  },
+                );
+              },
+            ),
+    );
   }
 }
