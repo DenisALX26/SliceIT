@@ -4,6 +4,8 @@ import 'package:frontend/auth/dio_client.dart';
 import 'package:frontend/auth/token_store.dart';
 import 'package:frontend/config/app_config.dart';
 import 'package:frontend/config/app_router.dart';
+import 'package:frontend/controllers/cart_controller.dart';
+import 'package:frontend/repository/cart_repo.dart';
 import 'package:frontend/repository/pizza_repo.dart';
 import 'package:frontend/repository/user_repositoy.dart';
 import 'package:go_router/go_router.dart';
@@ -19,7 +21,9 @@ void main() async {
       dio = buildDio(AppConfig.baseUrl, tokens),
       authRepo = AuthRepo(dio),
       userRepo = UserRepository(dio),
-      pizzaRepo = PizzaRepo(dio);
+      pizzaRepo = PizzaRepo(dio),
+      cartRepo = CartRepo(dio),
+      cartController = CartController(cartRepo);
 
   await auth.checkLoginStatus();
 
@@ -35,6 +39,7 @@ void main() async {
     authRepo: authRepo,
     userRepo: userRepo,
     pizzaRepo: pizzaRepo,
+    cartController: cartController,
   );
 
   runApp(SliceItApp(router: router));
