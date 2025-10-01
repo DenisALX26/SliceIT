@@ -44,10 +44,21 @@ class AppStrings {
   static const String userFullNameForProfilePage = "User Full Name";
   static const String userEmailForProfilePage = "user@email.com";
   static const String myCart = "My Cart";
-  static const String checkout = "Checkout";
+  static const String placeOrder = "Place Order";
   static const String pizzaIdForData = "pizzaId";
   static const String quantityForData = "quantity";
   static const String addedToCart = "Added to cart";
   static const String emptyCart = "Your cart is empty";
   static const String total = "Total:";
+  static const String no = "No";
+  static const String yes = "Yes";
+  static const String confirmOrder = "Confirm Your Order";
+  static const String orderPlaced = "Order placed successfully!";
+  static const String orderFailed = "Failed to place order. Please try again.";
+  static const String preparing = "Preparing";
+  static const String ready = "Ready";
+  static const String placed = "Placed";
+  static const String delivered = "Delivered";
+  static const String noOrdersFound = "No orders found";
+  static const String orderInfo = "Order Info";
 }

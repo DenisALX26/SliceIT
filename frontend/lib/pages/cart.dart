@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/colors.dart';
+import 'package:frontend/components/confirm_overlay.dart';
 import 'package:frontend/components/round_btn.dart';
 import 'package:frontend/config/app_strings.dart';
 import 'package:frontend/controllers/cart_controller.dart';
 import 'package:frontend/components/cart_item.dart';
+import 'package:frontend/controllers/order_controller.dart';
 
 class CartPage extends StatefulWidget {
   final CartController cartController;
-  const CartPage({super.key, required this.cartController});
+  final OrderController orderController;
+  const CartPage({
+    super.key,
+    required this.cartController,
+    required this.orderController,
+  });
 
   @override
   State<CartPage> createState() => _CartPageState();
 }
 
 class _CartPageState extends State<CartPage> {
+  bool _showConfirm = false, _placeOrder = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,7 +77,7 @@ class _CartPageState extends State<CartPage> {
       ),
       body: AnimatedBuilder(
         animation: widget.cartController,
-        builder: (context, _) {
+        builder: (ctx, _) {
           final cart = widget.cartController.cart;
           final loading = widget.cartController.isLoading;
           final items = cart?.items ?? const [];
@@ -79,7 +88,7 @@ class _CartPageState extends State<CartPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return Padding(
+          final content = Padding(
             padding: const EdgeInsets.all(32.0),
             child: Column(
               children: [
@@ -160,14 +169,64 @@ class _CartPageState extends State<CartPage> {
                   FractionallySizedBox(
                     widthFactor: 1,
                     child: RoundBtn(
-                      text: AppStrings.checkout,
+                      text: AppStrings.placeOrder,
                       bgColor: AppColors.myRed,
-                      onPressed: () {},
+                      onPressed: () {
+                        if (_placeOrder) return;
+                        setState(() {
+                          _showConfirm = true;
+                        });
+                      },
                       textColor: Colors.white,
                     ),
                   ),
               ],
             ),
+          );
+
+          return Stack(
+            children: [
+              content,
+              if (_showConfirm)
+                ConfirmOverlay(
+                  message: AppStrings.confirmOrder,
+                  onNo: () {
+                    setState(() {
+                      _showConfirm = false;
+                    });
+                  },
+                  onYes: () async {
+                    if (_placeOrder) return;
+                    setState(() {
+                      _showConfirm = false;
+                      _placeOrder = true;
+                    });
+                    try {
+                      await widget.orderController.placeOrder();
+                      await widget.cartController.clear();
+
+                      if (!ctx.mounted) return;
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        SnackBar(content: Text(AppStrings.orderPlaced)),
+                      );
+                      Navigator.of(ctx).pop();
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        SnackBar(content: Text(AppStrings.orderFailed)),
+                      );
+                    } finally {
+                      if (mounted) {
+                        setState(() {
+                          _placeOrder = false;
+                        });
+                      }
+                    }
+                  },
+                  noText: AppStrings.no,
+                  yesText: AppStrings.yes,
+                ),
+            ],
           );
         },
       ),

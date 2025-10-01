@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/auth/auth_state.dart';
+import 'package:frontend/config/app_router.dart';
 import 'package:frontend/config/app_strings.dart';
 import 'package:frontend/repository/auth_repo.dart';
 import 'package:frontend/colors.dart';
 import 'package:frontend/model/user.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfilePage extends StatefulWidget {
   final AuthRepo authRepo;
@@ -98,7 +100,9 @@ class _ProfilePageState extends State<ProfilePage> {
               SizedBox(
                 width: double.infinity,
                 child: TextButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    context.push(AppRoutes.orders);
+                  },
                   child: Row(
                     children: [
                       Text(

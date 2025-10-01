@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/auth/auth_state.dart';
 import 'package:frontend/controllers/cart_controller.dart';
+import 'package:frontend/controllers/order_controller.dart';
+import 'package:frontend/pages/order_details.dart';
+import 'package:frontend/pages/orders.dart';
 import 'package:frontend/pages/root_page.dart';
+import 'package:frontend/repository/order_repo.dart';
 import 'package:frontend/repository/pizza_repo.dart';
 import 'package:frontend/repository/user_repositoy.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +19,8 @@ class AppRoutes {
   static const signup = '/signup';
   static const root = '/root';
   static const cart = '/cart';
+  static const orders = '/orders';
+  static const orderDetails = '/order_details';
 }
 
 GoRouter buildRouter({
@@ -23,6 +29,8 @@ GoRouter buildRouter({
   required UserRepository userRepo,
   required PizzaRepo pizzaRepo,
   required CartController cartController,
+  required OrderController orderController,
+  required OrderRepo orderRepo,
 }) {
   return GoRouter(
     initialLocation: AppRoutes.login,
@@ -53,15 +61,68 @@ GoRouter buildRouter({
       ),
       GoRoute(
         path: AppRoutes.root,
-        builder: (context, state) =>
-            RootPage(pizzaRepo: pizzaRepo, authRepo: authRepo, auth: auth, cartController: cartController),
+        builder: (context, state) => RootPage(
+          pizzaRepo: pizzaRepo,
+          authRepo: authRepo,
+          auth: auth,
+          cartController: cartController,
+        ),
       ),
       GoRoute(
         path: AppRoutes.cart,
         pageBuilder: (context, state) => CustomTransitionPage<void>(
           key: state.pageKey,
           transitionDuration: const Duration(milliseconds: 300),
-          child: CartPage(cartController: cartController),
+          child: CartPage(
+            cartController: cartController,
+            orderController: orderController,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            final tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: Curves.easeInOut));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.orders,
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          transitionDuration: const Duration(milliseconds: 300),
+          child: MyOrders(
+            orderRepo: orderRepo,
+            // cartController: cartController,
+          ),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            const begin = Offset(1.0, 0.0);
+            const end = Offset.zero;
+            final tween = Tween(
+              begin: begin,
+              end: end,
+            ).chain(CurveTween(curve: Curves.easeInOut));
+            return SlideTransition(
+              position: animation.drive(tween),
+              child: child,
+            );
+          },
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.orderDetails,
+        pageBuilder: (context, state) => CustomTransitionPage<void>(
+          key: state.pageKey,
+          transitionDuration: const Duration(milliseconds: 300),
+          child: OrderDetails(
+            orderTitle: (state.extra as Map<String, dynamic>)['orderTitle'],
+            items: (state.extra as Map<String, dynamic>)['items'],
+          ),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             const begin = Offset(1.0, 0.0);
             const end = Offset.zero;
