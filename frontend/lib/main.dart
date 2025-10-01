@@ -5,7 +5,9 @@ import 'package:frontend/auth/token_store.dart';
 import 'package:frontend/config/app_config.dart';
 import 'package:frontend/config/app_router.dart';
 import 'package:frontend/controllers/cart_controller.dart';
+import 'package:frontend/controllers/order_controller.dart';
 import 'package:frontend/repository/cart_repo.dart';
+import 'package:frontend/repository/order_repo.dart';
 import 'package:frontend/repository/pizza_repo.dart';
 import 'package:frontend/repository/user_repositoy.dart';
 import 'package:go_router/go_router.dart';
@@ -23,7 +25,9 @@ void main() async {
       userRepo = UserRepository(dio),
       pizzaRepo = PizzaRepo(dio),
       cartRepo = CartRepo(dio),
-      cartController = CartController(cartRepo);
+      cartController = CartController(cartRepo),
+      orderRepo = OrderRepo(dio),
+      orderController = OrderController(orderRepo);
 
   await auth.checkLoginStatus();
 
@@ -40,6 +44,8 @@ void main() async {
     userRepo: userRepo,
     pizzaRepo: pizzaRepo,
     cartController: cartController,
+    orderRepo: orderRepo,
+    orderController: orderController,
   );
 
   runApp(SliceItApp(router: router));

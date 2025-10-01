@@ -36,7 +36,7 @@ class PizzaCard extends StatelessWidget {
                 ? Image.network(
                     imagePath,
                     errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.broken_image, size: 40),
+                        const Icon(Icons.local_pizza, size: 40),
                   )
                 : Image.asset(imagePath),
           ),
