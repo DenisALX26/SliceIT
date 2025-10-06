@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
@@ -38,6 +39,19 @@ public class OrderController {
     public ResponseEntity<OrderDto> getOrder(@PathVariable UUID orderId) {
         UUID userId = getCurrentUser();
         return ResponseEntity.ok(orderService.getOrder(userId, orderId));
+    }
+
+    @GetMapping("/dashboard")
+    public ResponseEntity<List<OrderDto>> getAllOrdersForDashboard() {
+        return ResponseEntity.ok(orderService.getAllOrdersForDashboard());
+    }
+
+    @PatchMapping("/{orderId}/status/advance")
+    public ResponseEntity<OrderDto> advanceOrderStatus(@PathVariable UUID orderId) {
+        return ResponseEntity.ok(orderService.advanceOrderStatus(orderId));
+    }
+
+    public record UpdateStatusRequest(String status) {
     }
 
     private UUID getCurrentUser() {

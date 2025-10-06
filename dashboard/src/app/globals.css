@@ -1,10 +1,12 @@
 @import "tailwindcss";
 
-@theme {
+:root {
   --color-primary: #E53935;
   --color-background: #FDF6E0;
   --color-button: #FFDF9B;
   --color-mygray: #404040;
+  --color-yellow: #EAB308;
+  --color-green: #22C55E;
 }
 
 :root {
