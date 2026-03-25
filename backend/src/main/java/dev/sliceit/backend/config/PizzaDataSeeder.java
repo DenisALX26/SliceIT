@@ -28,17 +28,17 @@ public class PizzaDataSeeder implements CommandLineRunner {
                 Pizza.builder()
                         .name("Margherita")
                         .price(new BigDecimal("8.99"))
-                        .imageUrl("https://picsum.photos/seed/margherita/600/400")
+                        .imageUrl("https://picsum.photos/id/0/160/160")
                         .build(),
                 Pizza.builder()
                         .name("Pepperoni")
                         .price(new BigDecimal("29.90"))
-                        .imageUrl("https://picsum.photos/seed/pepperoni/600/400")
+                        .imageUrl("https://picsum.photos/id/1/160/160")
                         .build(),
                 Pizza.builder()
                         .name("Quattro Formaggi")
                         .price(new BigDecimal("34.90"))
-                        .imageUrl("https://picsum.photos/seed/quattro/600/400")
+                        .imageUrl("https://picsum.photos/id/2/160/160")
                         .build());
 
         pizzaRepository.saveAll(pizzas);
