@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:frontend/colors.dart';
 import 'package:frontend/components/confirm_overlay.dart';
 import 'package:frontend/components/round_btn.dart';
+import 'package:frontend/config/app_router.dart';
 import 'package:frontend/config/app_strings.dart';
 import 'package:frontend/controllers/cart_controller.dart';
 import 'package:frontend/components/cart_item.dart';
 import 'package:frontend/controllers/order_controller.dart';
+import 'package:go_router/go_router.dart';
 
 class CartPage extends StatefulWidget {
   final CartController cartController;
@@ -172,10 +174,10 @@ class _CartPageState extends State<CartPage> {
                       text: AppStrings.placeOrder,
                       bgColor: AppColors.myRed,
                       onPressed: () {
-                        if (_placeOrder) return;
-                        setState(() {
-                          _showConfirm = true;
-                        });
+                        context.push(
+                          AppRoutes.pay,
+                          extra: widget.cartController.totalPrice,
+                        );
                       },
                       textColor: Colors.white,
                     ),
