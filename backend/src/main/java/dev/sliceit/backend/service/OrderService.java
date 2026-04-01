@@ -22,6 +22,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final CartRepository cartRepository;
     private final OrderRepository orderRepository;
+    private final StripeService stripeService;
 
     @Transactional
     public OrderDto placeOrder(UUID userId) {
@@ -32,20 +33,39 @@ public class OrderService {
             throw new IllegalStateException("Cart is empty");
         }
 
-        var order = Order.builder().user(user).build();
+        long totalAmountInCents = cart.getItems().stream()
+                .mapToLong(item -> (long) (item.getPizza().getPrice().doubleValue() * item.getQuantity() * 100))
+                .sum();
 
-        cart.getItems().forEach(item -> {
-            var orderItem = OrderItem.builder().order(order).pizza(item.getPizza()).quantity(item.getQuantity())
+        try {
+            var intent = stripeService.createPaymentIntent(totalAmountInCents, "ron");
+
+            var order = Order.builder()
+                    .user(user)
+                    .status(OrderStatus.PLACED)
+                    .stripePaymentIntentId(intent.getId())
                     .build();
-            order.getItems().add(orderItem);
-        });
 
-        var savedOrder = orderRepository.save(order);
+            cart.getItems().forEach(item -> {
+                    var orderItem = OrderItem.builder()
+                            .order(order)
+                            .pizza(item.getPizza())
+                            .quantity(item.getQuantity())
+                            .build();
+                    order.getItems().add(orderItem);
+            });
 
-        cart.getItems().clear();
-        cartRepository.save(cart);
+            var savedOrder = orderRepository.save(order);
 
-        return toDto(savedOrder);
+            cart.getItems().clear();
+            cartRepository.save(cart);
+
+            var dto = toDto(savedOrder);
+            dto.setClientSecret(intent.getClientSecret());
+            return dto;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create payment intent: " + e.getMessage(), e);
+        }
     }
 
     @Transactional(readOnly = true)

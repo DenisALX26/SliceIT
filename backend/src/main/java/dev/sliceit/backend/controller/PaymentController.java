@@ -3,6 +3,7 @@ package dev.sliceit.backend.controller;
 import dev.sliceit.backend.dto.PaymentRequest;
 import dev.sliceit.backend.service.StripeService;
 import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -23,9 +24,9 @@ public class PaymentController {
     @PostMapping("/create-intent")
     public ResponseEntity<Map<String, String>> createIntent(@RequestBody PaymentRequest request) {
         try {
-            String clientSecret = stripeService.createPaymentIntent(request.getAmount(), request.getCurrency());
+            PaymentIntent intent = stripeService.createPaymentIntent(request.getAmount(), request.getCurrency());
             Map<String, String> response = new HashMap<>();
-            response.put("clientSecret", clientSecret);
+            response.put("clientSecret", intent.getClientSecret());
             return ResponseEntity.ok(response);
         } catch (StripeException e) {
             Map<String, String> errorResponse = new HashMap<>();

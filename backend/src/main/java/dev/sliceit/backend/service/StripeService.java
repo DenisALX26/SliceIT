@@ -18,7 +18,7 @@ public class StripeService {
         Stripe.apiKey = secretKey;
     }
 
-    public String createPaymentIntent(Long amount, String currency) throws StripeException {
+    public PaymentIntent createPaymentIntent(Long amount, String currency) throws StripeException {
         PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
                 .setAmount(amount)
                 .setCurrency(currency.toLowerCase())
@@ -28,8 +28,8 @@ public class StripeService {
                                 .build()
                 )
                 .build();
-                PaymentIntent intent = PaymentIntent.create(params);
-        return intent.getClientSecret();
+
+        return PaymentIntent.create(params);
     }
 
 }

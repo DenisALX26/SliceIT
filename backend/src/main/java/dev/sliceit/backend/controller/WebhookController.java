@@ -5,6 +5,10 @@ import com.stripe.model.PaymentIntent;
 import com.stripe.model.Event;
 import com.stripe.model.EventDataObjectDeserializer;
 import com.stripe.net.Webhook;
+
+import dev.sliceit.backend.model.enums.OrderStatus;
+import dev.sliceit.backend.repository.OrderRepository;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class WebhookController {
     @Value("${STRIPE_WEBHOOK_SECRET}")
     private String endpointSecret;
+
+    private final OrderRepository orderRepository;
+
+    public WebhookController(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
 
     @PostMapping("/stripe")
 public ResponseEntity<String> handleStripeWebhook(@RequestBody String payload, 
@@ -41,6 +51,10 @@ public ResponseEntity<String> handleStripeWebhook(@RequestBody String payload,
                 }
 
                 if (intent != null) {
+                    orderRepository.findByStripePaymentIntentId(intent.getId()).ifPresent(order -> {
+                        order.setStatus(OrderStatus.COMPLETED);
+                        orderRepository.save(order);
+                    });
                     System.out.println("✅ PLATA REUȘITĂ! Suma: " + intent.getAmount() + " " + intent.getCurrency());
                     System.out.println("ID Tranzacție: " + intent.getId());
                 }
