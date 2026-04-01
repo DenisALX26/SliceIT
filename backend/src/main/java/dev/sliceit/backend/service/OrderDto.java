@@ -12,6 +12,7 @@ public class OrderDto {
     private String userFullName;
     private Instant createdAt;
     private List<OrderItemDto> items;
+    private String clientSecret;
 
     public UUID getOrderId() {
         return orderId;
@@ -59,5 +60,13 @@ public class OrderDto {
 
     public void setItems(List<OrderItemDto> items) {
         this.items = items;
+    }
+
+    public String getClientSecret() {
+        return clientSecret;
+    }
+
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
     }
 }
