@@ -11,12 +11,16 @@ import 'package:frontend/repository/order_repo.dart';
 import 'package:frontend/repository/pizza_repo.dart';
 import 'package:frontend/repository/user_repositoy.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'colors.dart';
 import 'package:frontend/config/app_strings.dart';
 import 'package:frontend/repository/auth_repo.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  Stripe.publishableKey = AppConfig.stripePublishableKey;
 
   final tokens = const TokenStore(),
       auth = AuthState(tokens),
@@ -48,24 +52,49 @@ void main() async {
     orderController: orderController,
   );
 
-  runApp(SliceItApp(router: router));
+  await Stripe.instance.applySettings();
+
+  runApp(
+    SliceItApp(
+      router: router,
+      cartController: cartController,
+      authState: auth,
+      orderController: orderController,
+    ),
+  );
 }
 
 class SliceItApp extends StatelessWidget {
-  const SliceItApp({super.key, required this.router});
+  const SliceItApp({
+    super.key,
+    required this.router,
+    required this.cartController,
+    required this.authState,
+    required this.orderController,
+  });
 
   final GoRouter router;
+  final CartController cartController;
+  final AuthState authState;
+  final OrderController orderController;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      theme: ThemeData(
-        scaffoldBackgroundColor: AppColors.myBeige,
-        useMaterial3: true,
-        fontFamily: AppStrings.fontFamily,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthState>.value(value: authState),
+        ChangeNotifierProvider<CartController>.value(value: cartController),
+        ChangeNotifierProvider<OrderController>.value(value: orderController),
+      ],
+      child: MaterialApp.router(
+        theme: ThemeData(
+          scaffoldBackgroundColor: AppColors.myBeige,
+          useMaterial3: true,
+          fontFamily: AppStrings.fontFamily,
+        ),
+        routerConfig: router,
+        debugShowCheckedModeBanner: false,
       ),
-      routerConfig: router,
-      debugShowCheckedModeBanner: false,
     );
   }
 }

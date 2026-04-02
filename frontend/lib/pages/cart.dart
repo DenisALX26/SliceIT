@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/auth/token_store.dart';
 import 'package:frontend/colors.dart';
 import 'package:frontend/components/confirm_overlay.dart';
 import 'package:frontend/components/round_btn.dart';
@@ -173,10 +174,18 @@ class _CartPageState extends State<CartPage> {
                     child: RoundBtn(
                       text: AppStrings.placeOrder,
                       bgColor: AppColors.myRed,
-                      onPressed: () {
+                      onPressed: () async {
+                        const storage = TokenStore();
+                        final userToken = await storage.getAccess();
+
+                        if (!context.mounted) return;
+
                         context.push(
                           AppRoutes.pay,
-                          extra: widget.cartController.totalPrice,
+                          extra: {
+                            'amount': widget.cartController.totalPrice,
+                            'token': userToken ?? '',
+                          },
                         );
                       },
                       textColor: Colors.white,
