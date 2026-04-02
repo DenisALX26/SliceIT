@@ -8,4 +8,7 @@ class AppConfig {
   static const cart = "$baseUrl/api/cart";
   static const items = "$baseUrl/api/cart/items";
   static const orders = "$baseUrl/api/orders";
+
+  static const stripePublishableKey =
+      "pk_test_51TErMZRBqVtbnKU2hj5D3NYmGrEMKIFBqPvWXoaY3WVthw4Oy96Yt48r6R0yaTjTeaqRwYv1hfbMQeyOqarabDIp00jhIwpGEm";
 }

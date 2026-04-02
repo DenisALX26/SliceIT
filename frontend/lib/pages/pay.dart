@@ -1,21 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:frontend/colors.dart';
+import 'package:frontend/controllers/cart_controller.dart';
+import 'package:frontend/services/stripe_service.dart';
+import 'package:provider/provider.dart';
 
 class Pay extends StatefulWidget {
   final double amount;
-  const Pay({super.key, this.amount = 29.99});
+  final String jwtToken;
+
+  const Pay({super.key, this.amount = 29.99, required this.jwtToken});
 
   @override
-  _PayState createState() => _PayState();
+  State<Pay> createState() => _PayState();
 }
 
 class _PayState extends State<Pay> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+
   final _cardController = TextEditingController();
   final _expiryController = TextEditingController();
-  final _cvvController = TextEditingController();
+  final _cvcController = TextEditingController();
+
   bool _isProcessing = false;
 
   @override
@@ -23,28 +29,72 @@ class _PayState extends State<Pay> {
     _nameController.dispose();
     _cardController.dispose();
     _expiryController.dispose();
-    _cvvController.dispose();
+    _cvcController.dispose();
     super.dispose();
   }
 
   Future<void> _payNow() async {
-    final isValid = _formKey.currentState?.validate() ?? false;
-    if (!isValid || _isProcessing) return;
+    if (_isProcessing) return;
+
+    if (_nameController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter your name.')));
+      return;
+    }
+
+    final cartController = context.read<CartController>();
 
     setState(() {
       _isProcessing = true;
     });
 
-    await Future.delayed(const Duration(milliseconds: 900));
-    if (!mounted) return;
+    try {
+      await StripeService.makePayment(widget.jwtToken);
 
-    setState(() {
-      _isProcessing = false;
-    });
+      cartController.clear();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Payment submitted. Connect Stripe API in _payNow().'),
+      if (!mounted) return;
+      _showSuccessDialog();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Payment failed: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
+    }
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Icon(Icons.check_circle, color: Colors.green, size: 60),
+        content: const Text(
+          "Payment successful! Your order is being processed.",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 16),
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () =>
+                  Navigator.of(context).popUntil((route) => route.isFirst),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.myRed),
+              child: const Text("OK", style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -57,7 +107,7 @@ class _PayState extends State<Pay> {
       labelText: label,
       hintText: hint,
       filled: true,
-      fillColor: AppColors.inputField.withValues(alpha: .35),
+      fillColor: AppColors.inputField.withValues(alpha: 0.35),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,
@@ -68,16 +118,17 @@ class _PayState extends State<Pay> {
 
   @override
   Widget build(BuildContext context) {
-    final processingText = _isProcessing ? 'Processing...' : 'Pay Now';
+    final processingText = _isProcessing ? "Processing..." : "Pay Now";
     final amount = widget.amount;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Payment',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          "Finalize Payment",
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.myBeige,
+        elevation: 0,
       ),
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -98,167 +149,116 @@ class _PayState extends State<Pay> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.myRed.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Debit Card',
+                        "SLICE IT",
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 18),
-                      Text(
-                        _cardController.text.isEmpty
-                            ? '•••• •••• •••• ••••'
-                            : _cardController.text,
-                        style: const TextStyle(
+                      const SizedBox(height: 20),
+                      const Text(
+                        "**** **** **** ****",
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 22,
                           letterSpacing: 1.2,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 30),
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: Text(
-                              _nameController.text.isEmpty
-                                  ? 'CARD HOLDER'
-                                  : _nameController.text.toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                letterSpacing: .8,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Card Holder',
+                                style: TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 10,
+                                ),
                               ),
-                            ),
+                              Text(
+                                _nameController.text.isEmpty
+                                    ? "Full Name"
+                                    : _nameController.text.toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            _expiryController.text.isEmpty
-                                ? 'MM/YY'
-                                : _expiryController.text,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                          const Icon(Icons.credit_card, color: Colors.white54),
                         ],
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 30),
+                const Text(
+                  "Billing Details",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 15),
                 TextFormField(
                   controller: _nameController,
                   decoration: _inputDecoration(
-                    label: 'Cardholder Name',
-                    hint: 'John Doe',
+                    label: "Card Holder",
+                    hint: "Enter your full name",
                   ),
-                  textInputAction: TextInputAction.next,
+                  textInputAction: TextInputAction.done,
                   onChanged: (_) => setState(() {}),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Cardholder name is required';
-                    }
-                    return null;
-                  },
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? "Please enter your name"
+                      : null,
                 ),
-                const SizedBox(height: 14),
-                TextFormField(
-                  controller: _cardController,
-                  decoration: _inputDecoration(
-                    label: 'Card Number',
-                    hint: '1234 5678 9012 3456',
+                const SizedBox(height: 20),
+                const Text(
+                  "Note: You will safely introduce card's details through Stripe's secure payment",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
+                    fontStyle: FontStyle.italic,
                   ),
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(16),
-                    _CardNumberFormatter(),
-                  ],
-                  onChanged: (_) => setState(() {}),
-                  validator: (value) {
-                    final digits = (value ?? '').replaceAll(' ', '');
-                    if (digits.length != 16) {
-                      return 'Enter a valid 16-digit card number';
-                    }
-                    return null;
-                  },
                 ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _expiryController,
-                        decoration: _inputDecoration(
-                          label: 'Expiry Date',
-                          hint: 'MM/YY',
-                        ),
-                        keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.next,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(4),
-                          _ExpiryDateFormatter(),
-                        ],
-                        onChanged: (_) => setState(() {}),
-                        validator: (value) {
-                          final raw = (value ?? '').replaceAll('/', '');
-                          if (raw.length != 4) return 'Use MM/YY';
-                          final month = int.tryParse(raw.substring(0, 2)) ?? 0;
-                          if (month < 1 || month > 12) return 'Invalid month';
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _cvvController,
-                        decoration: _inputDecoration(label: 'CVV', hint: '123'),
-                        keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.done,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(4),
-                        ],
-                        obscureText: true,
-                        validator: (value) {
-                          final length = (value ?? '').trim().length;
-                          if (length < 3 || length > 4) {
-                            return 'Invalid CVV';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 22),
+                const SizedBox(height: 30),
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.myBeige,
+                    color: AppColors.myBeige.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
                     children: [
-                      _PriceRow(label: 'Subtotal', value: amount),
-                      const SizedBox(height: 6),
-                      const _PriceRow(label: 'Processing Fee', value: 0),
-                      const Divider(height: 20),
-                      _PriceRow(label: 'Total', value: amount, highlight: true),
+                      _PriceRow(label: "Total Amount", amount: amount),
+                      const SizedBox(height: 8),
+                      const _PriceRow(label: "Delivery Fee", amount: 0.00),
+                      const Divider(height: 30),
+                      _PriceRow(
+                        label: "Amount to Pay",
+                        amount: amount,
+                        highlight: true,
+                      ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 30),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -266,18 +266,21 @@ class _PayState extends State<Pay> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.myRed,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 18),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(16),
                       ),
+                      elevation: 5,
                     ),
-                    child: Text(
-                      '$processingText - \$${amount.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    child: _isProcessing
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            '$processingText - \$${amount.toStringAsFixed(2)} RON',
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
               ],
@@ -291,12 +294,12 @@ class _PayState extends State<Pay> {
 
 class _PriceRow extends StatelessWidget {
   final String label;
-  final double value;
+  final double amount;
   final bool highlight;
 
   const _PriceRow({
     required this.label,
-    required this.value,
+    required this.amount,
     this.highlight = false,
   });
 
@@ -304,64 +307,16 @@ class _PriceRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final style = TextStyle(
       fontSize: highlight ? 18 : 15,
-      fontWeight: highlight ? FontWeight.w700 : FontWeight.w500,
+      fontWeight: highlight ? FontWeight.bold : FontWeight.w500,
       color: highlight ? AppColors.myRed : Colors.black87,
     );
 
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label, style: style),
-        const Spacer(),
-        Text('\$${value.toStringAsFixed(2)}', style: style),
+        Text("\$${amount.toStringAsFixed(2)} RON", style: style),
       ],
-    );
-  }
-}
-
-class _CardNumberFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
-    final buffer = StringBuffer();
-
-    for (var i = 0; i < digits.length; i++) {
-      buffer.write(digits[i]);
-      if ((i + 1) % 4 == 0 && i != digits.length - 1) {
-        buffer.write(' ');
-      }
-    }
-
-    final formatted = buffer.toString();
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
-    );
-  }
-}
-
-class _ExpiryDateFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
-    final buffer = StringBuffer();
-
-    for (var i = 0; i < digits.length; i++) {
-      if (i == 2) {
-        buffer.write('/');
-      }
-      buffer.write(digits[i]);
-    }
-
-    final formatted = buffer.toString();
-    return TextEditingValue(
-      text: formatted,
-      selection: TextSelection.collapsed(offset: formatted.length),
     );
   }
 }
